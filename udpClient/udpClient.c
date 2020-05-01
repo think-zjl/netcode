@@ -1,62 +1,33 @@
-//#include "stdafx.h"
 #include <stdio.h>
-#include <winsock2.h>
-
-#pragma comment(lib, "ws2_32.lib") 
-
-int main(int argc, char* argv[])
-{
-	WORD socketVersion = MAKEWORD(2, 2);
-	WSADATA wsaData;
-	if (WSAStartup(socketVersion, &wsaData) != 0)
-	{
-		return 0;
-	}
-	SOCKET sclient = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
-	sockaddr_in sin;
-	sin.sin_family = AF_INET;
-	sin.sin_port = htons(8888);
-	sin.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
-	int len = sizeof(sin);
-
-	const char* sendData = "来自客户端的数据包.\n";
-	sendto(sclient, sendData, strlen(sendData), 0, (sockaddr*)& sin, len);
-
-	char recvData[255];
-	int ret = recvfrom(sclient, recvData, 255, 0, (sockaddr*)& sin, &len);
-	if (ret > 0)
-	{
-		recvData[ret] = 0x00;
-		printf(recvData);
-	}
-
-	closesocket(sclient);
-	WSACleanup();
-	return 0;
-}
-#if 0
-#include <stdio.h>
+#include <string.h>
+#ifdef linux
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#else
+#include <winsock2.h>
+#pragma comment(lib, "ws2_32.lib") 
+#endif
 
+#define UDP_SERVER_IP	"122.112.171.40"
+#define UDP_SERVER_PORT	(8000)
+
+#ifdef linux
 int main(int argc, char* argv[])
 {
 	int client_sockfd;
 	int len;
-	struct sockaddr_in remote_addr; //服务器端网络地址结构体
+	struct sockaddr_in remote_addr;
 	int sin_size;
-	char buf[BUFSIZ];  //数据传送的缓冲区
-	memset(&remote_addr, 0, sizeof(remote_addr)); //数据初始化--清零
-	remote_addr.sin_family = AF_INET; //设置为IP通信
-	remote_addr.sin_addr.s_addr = inet_addr("127.0.0.1");//服务器IP地址
-	remote_addr.sin_port = htons(8000); //服务器端口号
+	char buf[BUFSIZ];
+	memset(&remote_addr, 0, sizeof(remote_addr));
+	remote_addr.sin_family = AF_INET;
+	remote_addr.sin_addr.s_addr = inet_addr(UDP_SERVER_IP);
+	remote_addr.sin_port = htons(UDP_SERVER_PORT);
 
-		/*创建客户端套接字--IPv4协议，面向无连接通信，UDP协议*/
-	if ((client_sockfd = socket(PF_INET, SOCK_DGRAM, 0)) < 0)
-	{
+	if ((client_sockfd = socket(PF_INET, SOCK_DGRAM, 0)) < 0){
 		perror("socket");
 		return 1;
 	}
@@ -64,13 +35,41 @@ int main(int argc, char* argv[])
 	printf("sending: '%s'\n", buf);
 	sin_size = sizeof(struct sockaddr_in);
 
-	/*向服务器发送数据包*/
-	if ((len = sendto(client_sockfd, buf, strlen(buf), 0, (struct sockaddr*) & remote_addr, sizeof(struct sockaddr))) < 0)
-	{
+	if ((len = sendto(client_sockfd, buf, strlen(buf), 0, (struct sockaddr*) & remote_addr, sizeof(struct sockaddr))) < 0){
 		perror("recvfrom");
 		return 1;
 	}
 	close(client_sockfd);
+	return 0;
+}
+#else
+int main(int argc, char* argv[])
+{
+	WORD socketVersion = MAKEWORD(2, 2);
+	WSADATA wsaData;
+	if (WSAStartup(socketVersion, &wsaData) != 0){
+		return 0;
+	}
+	SOCKET sclient = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+	sockaddr_in sin;
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(UDP_SERVER_PORT);
+	sin.sin_addr.S_un.S_addr = inet_addr(UDP_SERVER_IP);
+	int len = sizeof(sin);
+
+	const char* sendData = "Clinet send\n";
+	sendto(sclient, sendData, strlen(sendData), 0, (sockaddr*)& sin, len);
+
+	char recvData[255];
+	int ret = recvfrom(sclient, recvData, 255, 0, (sockaddr*)& sin, &len);
+	if (ret > 0){
+		recvData[ret] = 0x00;
+		printf(recvData);
+	}
+
+	closesocket(sclient);
+	WSACleanup();
 	return 0;
 }
 #endif
