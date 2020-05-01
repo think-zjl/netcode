@@ -41,14 +41,22 @@ int main(int argc, char* argv[])
 	sin_size = sizeof(struct sockaddr_in);
 	printf("waiting for a packet...\n");
 
-	/*接收客户端的数据并将其发送给客户端--recvfrom是无连接的*/
-	if ((len = recvfrom(server_sockfd, buf, BUFSIZ, 0, (struct sockaddr*) & remote_addr, &sin_size)) < 0){
-		perror("recvfrom");
-		return 1;
+	while(1){
+		/*接收客户端的数据并将其发送给客户端--recvfrom是无连接的*/
+		if ((len = recvfrom(server_sockfd, buf, BUFSIZ, 0, (struct sockaddr*) & remote_addr, &sin_size)) < 0){
+			perror("recvfrom");
+			return 1;
+		}
+		printf("received packet from %s: port:%d\n", inet_ntoa(remote_addr.sin_addr), remote_addr.sin_port);
+		buf[len] = '\0';
+		printf("contents: %s\n", buf);
+		char *snd_data = inet_ntoa(remote_addr.sin_addr);
+		if ((len = sendto(server_sockfd, snd_data, strlen(snd_data), 0, (struct sockaddr*)&remote_addr, sizeof(struct sockaddr))) < 0){
+			perror("sendto");
+			return 1;
+		}
 	}
-	printf("received packet from %s:\n", inet_ntoa(remote_addr.sin_addr));
-	buf[len] = '\0';
-	printf("contents: %s\n", buf);
+	
 	close(server_sockfd);
 	return 0;
 }
