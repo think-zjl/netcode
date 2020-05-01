@@ -2,12 +2,12 @@ COMPILE_PATH := C:\MinGW
 CROSS_COMPILE := $(COMPILE_PATH)\bin/
 
 
-main : main.c
-	$(CROSS_COMPILE)gcc $^ -o $@ 
+main : udpClient.c
+	$(CROSS_COMPILE)gcc $^ -o $@ -lws2_32
 lib:
-	$(CROSS_COMPILE)gcc -c main.c
-	$(CROSS_COMPILE)ar crv libsum.a main.o
-	$(CROSS_COMPILE)gcc -shared -fPIC -o libsum.dll main.o -lhid -lsetupapi
+	$(CROSS_COMPILE)gcc -c udpClient.c
+	$(CROSS_COMPILE)ar crv libudpClient.a udpClient.o
+	$(CROSS_COMPILE)gcc -shared -fPIC -o libsum.dll udpClient.o -lhid -lsetupapi
 	
 clean :
 	del /Q /S .\main.exe
