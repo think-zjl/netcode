@@ -50,7 +50,10 @@ int main(int argc, char* argv[])
 		printf("received packet from %s: port:%d\n", inet_ntoa(remote_addr.sin_addr), remote_addr.sin_port);
 		buf[len] = '\0';
 		printf("contents: %s\n", buf);
-		char *snd_data = inet_ntoa(remote_addr.sin_addr);
+		char snd_data[128] = {0};
+		sprintf(snd_data, "%s:%d\n", inet_ntoa(remote_addr.sin_addr),
+								remote_addr.sin_port);
+		printf("contents: %s\n", snd_data);
 		if ((len = sendto(server_sockfd, snd_data, strlen(snd_data), 0, (struct sockaddr*)&remote_addr, sizeof(struct sockaddr))) < 0){
 			perror("sendto");
 			return 1;
