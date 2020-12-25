@@ -46,6 +46,19 @@ int main(int argc, char* argv[])
 		printf(recvData);
 	}
 	printf("recvData:%s\n", recvData);
+
+	remote_addr.sin_addr.s_addr = inet_addr(argv[2]);
+
+	if ((len = sendto(client_sockfd, buf, strlen(buf), 0, (struct sockaddr*) & remote_addr, sizeof(struct sockaddr))) < 0){
+		perror("recvfrom");
+		return 1;
+	}
+	ret = recvfrom(client_sockfd, recvData, 255, 0, (struct sockaddr*)& remote_addr, sizeof(struct sockaddr_in));
+	if (ret > 0){
+		recvData[ret] = 0x00;
+		printf(recvData);
+	}
+	printf("recvData:%s\n", recvData);
 	close(client_sockfd);
 	return 0;
 }
