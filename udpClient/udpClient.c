@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 	char buf[BUFSIZ];
 	memset(&remote_addr, 0, sizeof(remote_addr));
 	remote_addr.sin_family = AF_INET;
-	remote_addr.sin_addr.s_addr = inet_addr(UDP_SERVER_IP);
+	remote_addr.sin_addr.s_addr = inet_addr(argv[1]);
 	remote_addr.sin_port = htons(UDP_SERVER_PORT);
 
 	if ((client_sockfd = socket(PF_INET, SOCK_DGRAM, 0)) < 0){
@@ -39,6 +39,13 @@ int main(int argc, char* argv[])
 		perror("recvfrom");
 		return 1;
 	}
+	char recvData[255] = {0};
+	int ret = recvfrom(client_sockfd, recvData, 255, 0, (struct sockaddr*)& remote_addr, sizeof(struct sockaddr_in));
+	if (ret > 0){
+		recvData[ret] = 0x00;
+		printf(recvData);
+	}
+	printf("recvData:%s\n", recvData);
 	close(client_sockfd);
 	return 0;
 }
