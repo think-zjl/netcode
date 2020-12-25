@@ -10,9 +10,15 @@
 #include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib") 
 #endif
+#define LOCAL_RUN
 
+#if defined(LOCAL_RUN)
+#define UDP_SERVER_IP "127.0.0.1"
+#define UDP_SERVER_PORT (8000)
+#else
 #define UDP_SERVER_IP	"122.112.171.40"
 #define UDP_SERVER_PORT	(8000)
+#endif /* LOCAL_RUN */
 
 #ifdef linux
 int main(int argc, char* argv[])
@@ -40,25 +46,24 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 	char recvData[255] = {0};
-	int ret = recvfrom(client_sockfd, recvData, 255, 0, (struct sockaddr*)& remote_addr, sizeof(struct sockaddr_in));
+	int ret = recvfrom(client_sockfd, recvData, 255, 0, (struct sockaddr*)&remote_addr, &sin_size);
 	if (ret > 0){
 		recvData[ret] = 0x00;
-		printf(recvData);
+		printf("recvData:%s\n", recvData);
 	}
-	printf("recvData:%s\n", recvData);
-
+	
 	remote_addr.sin_addr.s_addr = inet_addr(argv[2]);
 
 	if ((len = sendto(client_sockfd, buf, strlen(buf), 0, (struct sockaddr*) & remote_addr, sizeof(struct sockaddr))) < 0){
 		perror("recvfrom");
 		return 1;
 	}
-	ret = recvfrom(client_sockfd, recvData, 255, 0, (struct sockaddr*)& remote_addr, sizeof(struct sockaddr_in));
+	ret = recvfrom(client_sockfd, recvData, 255, 0, (struct sockaddr*)& remote_addr, &sin_size);
 	if (ret > 0){
 		recvData[ret] = 0x00;
-		printf(recvData);
+		printf("recvData:%s\n", recvData);
 	}
-	printf("recvData:%s\n", recvData);
+	
 	close(client_sockfd);
 	return 0;
 }

@@ -11,7 +11,17 @@
 #pragma comment(lib, "ws2_32.lib") 
 #endif
 
-#define UDP_SERVER_PORT	(8000)
+
+
+//#define LOCAL_RUN
+
+#if defined(LOCAL_RUN)
+#define LOCAL_IP "127.0.0.1"
+#define LOCAL_PORT (8000)
+#else
+#define LOCAL_IP INADDR_ANY
+#define SERVER_PORT	(8000)
+#endif /* LOCAL_RUN */
 
 #ifdef linux
 int main(int argc, char* argv[])
@@ -23,9 +33,15 @@ int main(int argc, char* argv[])
 	int sin_size;
 	char buf[BUFSIZ];//数据传送的缓冲区
 	memset(&my_addr, 0, sizeof(my_addr));//数据初始化--清零
+	#if defined(LOCAL_RUN)
+	my_addr.sin_family = AF_INET;//设置为IP通信
+	my_addr.sin_addr.s_addr = inet_addr(LOCAL_IP);//服务器IP地址--允许连接到所有本地地址上
+	my_addr.sin_port = htons(LOCAL_PORT);//服务器端口号
+	#else
 	my_addr.sin_family = AF_INET;//设置为IP通信
 	my_addr.sin_addr.s_addr = INADDR_ANY;//服务器IP地址--允许连接到所有本地地址上
-	my_addr.sin_port = htons(UDP_SERVER_PORT);//服务器端口号
+	my_addr.sin_port = htons(SERVER_PORT);//服务器端口号
+	#endif
 	printf("%d\r\n", IPPROTO_UDP);
 	/*创建服务器端套接字--IPv4协议，面向无连接通信，UDP协议*/
 	if ((server_sockfd = socket(PF_INET, SOCK_DGRAM, 0)) < 0){
@@ -80,7 +96,7 @@ int main(int argc, char* argv[])
 
 	sockaddr_in serAddr;
 	serAddr.sin_family = AF_INET;
-	serAddr.sin_port = htons(UDP_SERVER_PORT);
+	serAddr.sin_port = htons(SERVER_PORT);
 	serAddr.sin_addr.S_un.S_addr = INADDR_ANY;
 	if (bind(serSocket, (sockaddr*)& serAddr, sizeof(serAddr)) == SOCKET_ERROR){
 		printf("bind error !");
